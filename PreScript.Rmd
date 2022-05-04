@@ -17,14 +17,18 @@ limit    <- '&limit=1000'
 
 URL <- paste0(portal, endpoint, result, fields, limit, sep='', collapse='')
 
-curl_download(URL, destfile = 'tsa.tsv')
+if (! file.exists('tsa.fa')) {
+   if (! file.exists('tsa.tsv')) {
+      curl_download(URL, destfile = 'tsa.tsv')
+   }
 
-tsa <- read.table('tsa.tsv', header = TRUE, sep = "\t")
-tsa <- tsa[order(tsa$fasta_file_bytes),]
-seleccionat <- 250
-fasta_url <- tsa[250, 'fasta_file']
-curl_download(fasta_url, destfile = 'tsa.fa.gz')
-system2('gunzip', args = 'tsa.fa.gz')
+   tsa <- read.table('tsa.tsv', header = TRUE, sep = "\t")
+   tsa <- tsa[order(tsa$fasta_file_bytes),]
+   seleccionat <- 250
+   fasta_url <- tsa[250, 'fasta_file']
+   curl_download(fasta_url, destfile = 'tsa.fa.gz')
+   system2('gunzip', args = 'tsa.fa.gz')
+}
 ```
 
 ## Traducció a proteïnes
@@ -71,6 +75,7 @@ findPotentialStartsAndStops <- function(sequence){
      return(mylist)
 }
 
+# Esta funció també és d'Avril Coghlan i està presa de https://a-little-book-of-r-for-bioinformatics.readthedocs.io/en/latest/src/chapter7.html
 findORFsinSeq <- function(sequence){
      require(Biostrings)
      # Make vectors "positions" and "types" containing information on the positions of ATGs in the sequence:
@@ -195,7 +200,7 @@ if (! file.exists('blastp.out')) {
                     '-db', 'swissprot',
                     '-out', 'blastp.out',
                     '-evlue', '1.0',
-                    '-outfmt', '6')
+                    '-outfmt', '6'))
 }
 
 blast1 <- read.table('blastp.out', col.names = c('qaccver', 'saccver', 'pident', 'length', 'mismatch',
